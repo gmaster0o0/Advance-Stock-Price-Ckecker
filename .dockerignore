@@ -1,0 +1,6 @@
+# environment variables. NEVER INCLUDE SENSITIVE DATA IN THE BUILD
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
