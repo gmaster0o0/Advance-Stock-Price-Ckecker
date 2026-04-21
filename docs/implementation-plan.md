@@ -36,19 +36,26 @@ Key environment rule:
 
 ### Tasks
 - Create `.github/workflows/ci.yml` that triggers on every pull request to `main`.
-- Pipeline steps:
+- Pipeline has two parallel jobs: `ci` and `docker`.
+- `ci` job steps:
   1. Checkout code.
   2. Set up Node.js (LTS).
-  3. Install dependencies (`npm ci`).
-  4. Run `npm run lint`.
-  5. Run `npm run typecheck`.
-  6. Run `npm test` (unit tests).
-  7. Run `npm run test:e2e` with a PostgreSQL service container.
-- Cache `node_modules` between runs.
+  3. Cache `node_modules` keyed on `package-lock.json` hash; skip `npm ci` on cache hit.
+  4. Install dependencies (`npm ci`).
+  5. Generate Prisma client (`npx prisma generate`).
+  6. Run `npm run lint`.
+  7. Run `npm run typecheck`.
+  8. Run `npm test` (unit tests).
+  9. Apply Prisma migrations to the test database (`npx prisma migrate deploy`).
+  10. Run `npm run test:e2e` with a PostgreSQL service container (`postgres:15-alpine`).
+- `docker` job steps:
+  1. Checkout code.
+  2. Build Docker image (`docker build`) to validate the `Dockerfile` compiles end-to-end.
 
 ### Acceptance criteria
 - CI passes green on a clean branch.
-- A failing lint, type error, or test causes the pipeline to fail and blocks the PR.
+- A failing lint, type error, unit test, or e2e test causes the pipeline to fail and blocks the PR.
+- A broken `Dockerfile` causes the `docker` job to fail.
 - All subsequent PRs are validated automatically by this pipeline.
 
 ---

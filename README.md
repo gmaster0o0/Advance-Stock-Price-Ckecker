@@ -49,6 +49,19 @@ docker compose --profile test down
 
 This removes only the `postgres-test` service and does not affect development data or the `postgres-dev` service.
 
+## CI Pipeline
+
+Every pull request targeting `main` runs the GitHub Actions workflow at `.github/workflows/ci.yml`.
+
+| Job | Steps |
+|-----|-------|
+| **Lint · Typecheck · Test** | Checkout → Node.js LTS → Cache `node_modules` → Install → Prisma generate → Lint → Typecheck → Unit tests → Migrate test DB → E2E tests |
+| **Docker Build** | Checkout → `docker build` |
+
+The `ci` job uses a `postgres:15-alpine` service container as the test database. The `TEST_DATABASE_URL` environment variable is wired automatically so no secrets need to be configured for the standard test run.
+
+A failing lint check, type error, broken test, or failing Docker build blocks the pull request from merging.
+
 ## Common Commands
 
 ```bash
