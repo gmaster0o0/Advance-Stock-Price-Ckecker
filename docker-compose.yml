@@ -5,9 +5,9 @@ services:
     image: postgres:15-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: stock_dev
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_DB}"
     ports:
       - "5432:5432"
     volumes:
@@ -17,9 +17,9 @@ services:
     image: postgres:15-alpine
     restart: "no"
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: stock_test
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${TEST_POSTGRES_DB}"
     ports:
       - "5433:5432"
     tmpfs:
@@ -34,7 +34,7 @@ services:
     depends_on:
       - postgres-dev
     environment:
-      DATABASE_URL: "postgresql://postgres:postgres@postgres-dev:5432/stock_dev?schema=public"
+      DATABASE_URL: "${DATABASE_URL}"
 
 volumes:
   postgres-dev-data:
