@@ -26,7 +26,9 @@ describe('PrismaService Smoke (e2e)', () => {
   });
 
   it('Should be connected and get data', async () => {
-    const result = await prismaService.$queryRaw`SELECT 1 AS result`;
+    const result: Array<{ result: number }> =
+      await prismaService.$queryRaw`SELECT 1 AS result`;
     expect(result).toBeDefined();
+    expect(result[0]).toHaveProperty('result', 1);
   });
 });
