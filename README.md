@@ -41,13 +41,13 @@ The `postgres-test` service uses `tmpfs`, so its data is ephemeral.
 
 ## Cleanup Temporary Test DB
 
-Stop and remove the temporary test database resources:
+Stop and remove the temporary test database service:
 
 ```bash
-docker compose --profile test down -v
+docker compose --profile test down
 ```
 
-This is safe for the temporary test database and does not remove development data unless you also tear down the `postgres-dev` service and its volume.
+This removes only the `postgres-test` service and does not affect development data or the `postgres-dev` service.
 
 ## Common Commands
 

@@ -192,13 +192,13 @@ Key environment rule:
 ## Dependency Order
 
 ```
-PR 0 (DB environment setup — merged first)
-  └─ PR 1 (CI pipeline)
-       └─ PR 2 (Prisma)
-            └─ PR 3 (Stock scaffold)
-                 └─ PR 4 (Finnhub)
-                      └─ PR 5 (Scheduler + storage)
-                           └─ PR 6 (Moving average + GET)
-                                ├─ PR 7 (Swagger)
-                                └─ PR 8 (E2E tests)
+PR 1 (DB environment setup — merged first)
+  └─ PR 2 (CI pipeline)
+       └─ PR 3 (Prisma)
+            └─ PR 4 (Stock scaffold)
+                 └─ PR 5 (Finnhub)
+                      └─ PR 6 (Scheduler + storage)
+                           └─ PR 7 (Moving average + GET)
+                                ├─ PR 8 (Swagger)
+                                └─ PR 9 (E2E tests)
 ```

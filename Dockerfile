@@ -30,6 +30,10 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./
 
+# Add healthcheck for database readiness
+HEALTHCHECK --interval=10s --timeout=5s --retries=5 \
+  CMD node -e "require('net').createConnection({port:5432,host:'postgres'},()=>process.exit(0)).on('error',()=>process.exit(1))"
+
 # Start the application after applying Prisma migrations
 EXPOSE 3000
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
+CMD ["sh", "-c", "npx --no-install prisma migrate deploy && node dist/main.js"]
