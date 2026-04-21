@@ -1,21 +1,46 @@
 version: '3.8'
 
 services:
-  db:
+  postgres-dev:
     image: postgres:15-alpine
-    restart: always
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: stock_db
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_DB}"
     ports:
       - "5432:5432"
+    volumes:
+      - postgres-dev-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-test:
+    image: postgres:15-alpine
+    restart: "no"
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${TEST_POSTGRES_DB}"
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    profiles:
+      - test
 
   app:
     build: .
     ports:
       - "3000:3000"
     depends_on:
-      - db
+      postgres-dev:
+        condition: service_healthy
     environment:
-      DATABASE_URL: "postgresql://user:password@db:5432/stock_db?schema=public"
+      DATABASE_URL: "${DATABASE_URL}"
+
+volumes:
+  postgres-dev-data:

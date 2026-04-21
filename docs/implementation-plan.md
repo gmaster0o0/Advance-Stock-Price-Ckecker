@@ -1,0 +1,204 @@
+# Implementation Plan — Advanced Stock Price Checker
+
+Project setup (NestJS, TypeScript, ESLint, Prettier, Prisma schema, Docker, commitlint, husky) is already complete.
+The remaining work is split into small, independently shippable PRs below.
+
+Key environment rule:
+- Use a persistent PostgreSQL database for local development.
+- Use a separate temporary/deletable PostgreSQL database for tests and CI runs.
+
+---
+
+## PR 1 — Database Environment Setup
+
+**Branch:** `1-infra/db-environment`
+
+### Tasks
+- Document and implement a persistent PostgreSQL database for local development.
+- Document and implement a separate temporary/deletable PostgreSQL database for tests and CI.
+- Add `.env.example` entries for:
+  - `DATABASE_URL` for the dev database
+  - `TEST_DATABASE_URL` for the test database
+- Update `docker-compose.yml` with a named service for the dev database and a temporary test database service if needed.
+- Ensure tests read `TEST_DATABASE_URL` and do not modify the persistent dev database.
+- Add cleanup guidance for the temporary test DB in the README or docs.
+
+### Acceptance criteria
+- Development runs against a persistent DB that survives restarts.
+- Tests run against a separate temporary/deletable DB.
+- The dev database and test database are clearly separated in configuration.
+
+---
+
+## PR 2 — CI Pipeline
+
+**Branch:** `2-ci/github-actions`
+
+### Tasks
+- Create `.github/workflows/ci.yml` that triggers on every pull request to `main`.
+- Pipeline steps:
+  1. Checkout code.
+  2. Set up Node.js (LTS).
+  3. Install dependencies (`npm ci`).
+  4. Run `npm run lint`.
+  5. Run `npm run typecheck`.
+  6. Run `npm test` (unit tests).
+  7. Run `npm run test:e2e` with a PostgreSQL service container.
+- Cache `node_modules` between runs.
+
+### Acceptance criteria
+- CI passes green on a clean branch.
+- A failing lint, type error, or test causes the pipeline to fail and blocks the PR.
+- All subsequent PRs are validated automatically by this pipeline.
+
+---
+
+## PR 3 — Prisma Service
+
+**Branch:** `3-feat/prisma-service`
+
+### Tasks
+- Create `src/prisma/prisma.service.ts` extending `PrismaClient` and implementing `OnModuleInit` / `OnModuleDestroy` for connection lifecycle.
+- Create `src/prisma/prisma.module.ts` exporting `PrismaService` as a global module.
+- Import `PrismaModule` in `AppModule`.
+- Add `.env.example` with `DATABASE_URL` placeholder.
+- Write a unit test `src/prisma/prisma.service.spec.ts` that mocks `$connect` / `$disconnect`.
+
+### Acceptance criteria
+- `PrismaService` is injectable in any module.
+- No direct `new PrismaClient()` calls elsewhere in the codebase.
+
+---
+
+## PR 4 — Stock Module Scaffold
+
+**Branch:** `4-feat/stock-module`
+
+### Tasks
+- Generate `src/stock/stock.module.ts`, `stock.controller.ts`, `stock.service.ts` via Nest CLI.
+- Define response interface `StockPriceResponse` (symbol, currentPrice, lastUpdated, movingAverage).
+- Define `src/stock/interfaces/finnhub-quote.interface.ts` for the raw Finnhub API shape (`c`, `h`, `l`, `o`, `pc`, `t`).
+- Register `StockModule` in `AppModule`.
+- Stub `GET /stock/:symbol` and `PUT /stock/:symbol` returning `501 Not Implemented` placeholders.
+- Write unit tests for the controller with a mocked `StockService`.
+
+### Acceptance criteria
+- Both routes exist and respond (even as stubs).
+- TypeScript compiles with no errors.
+
+---
+
+## PR 5 — Finnhub API Integration
+
+**Branch:** `5-feat/finnhub-integration`
+
+### Tasks
+- Install `@nestjs/axios` and `axios`.
+- Add `FINNHUB_API_KEY` to `.env.example`.
+- Create `src/stock/finnhub.service.ts` that injects `HttpService` and calls `https://finnhub.io/api/v1/quote?symbol=<SYMBOL>&token=<KEY>`.
+- Map the raw `FinnhubQuote` interface to a typed internal result.
+- Handle error cases: invalid/unknown symbol (Finnhub returns `c: 0`), network errors, and non-2xx responses — throw appropriate NestJS HTTP exceptions.
+- Register `HttpModule` in `StockModule`.
+- Write unit tests for `FinnhubService` with a mocked `HttpService`.
+
+### Acceptance criteria
+- `FinnhubService.getQuote(symbol)` returns a typed quote or throws `NotFoundException` / `BadGatewayException`.
+- No `any` types used.
+
+---
+
+## PR 6 — Scheduled Price Fetching & Storage
+
+**Branch:** `6-feat/scheduled-price-fetch`
+
+### Tasks
+- Install `@nestjs/schedule` and `node-cron` types (`@types/node-cron`).
+- Enable `ScheduleModule.forRoot()` in `AppModule`.
+- Add `trackedSymbols: Set<string>` state to `StockService`.
+- Implement `PUT /stock/:symbol` to add the symbol to `trackedSymbols` and return `{ message: 'Tracking started for <SYMBOL>' }`.
+- Add a `@Cron(CronExpression.EVERY_MINUTE)` job in `StockService` that iterates `trackedSymbols`, calls `FinnhubService.getQuote()`, and persists each result using `PrismaService.stockPrice.create()`.
+- Update the Prisma schema if needed (the `StockPrice` model already exists).
+- Run `prisma migrate dev` and commit the migration.
+- Write unit tests for `StockService` covering: symbol registration, cron tick with a mocked `FinnhubService` and `PrismaService`.
+
+### Acceptance criteria
+- `PUT /stock/AAPL` registers AAPL for periodic fetching.
+- Each cron tick stores a new `StockPrice` row for every tracked symbol.
+- Duplicate symbol registrations are idempotent.
+
+---
+
+## PR 7 — Moving Average & GET Endpoint
+
+**Branch:** `7-feat/moving-average`
+
+### Tasks
+- Implement `StockService.getMovingAverage(symbol)` querying the last 10 `StockPrice` rows ordered by `timestamp DESC` via `PrismaService`.
+- Calculate the simple moving average: sum of prices / count.
+- Implement `GET /stock/:symbol` returning:
+  ```json
+  {
+    "symbol": "AAPL",
+    "currentPrice": 175.23,
+    "lastUpdated": "2026-04-21T10:00:00.000Z",
+    "movingAverage": 174.50
+  }
+  ```
+- Throw `NotFoundException` when no price data exists for the symbol.
+- Write unit tests for the moving average calculation (edge cases: fewer than 10 records, exactly 10, more than 10).
+
+### Acceptance criteria
+- `GET /stock/:symbol` returns all three fields with correct values.
+- Returns `404` for an untracked symbol.
+- Moving average uses at most the last 10 prices.
+
+---
+
+## PR 8 — Swagger Documentation
+
+**Branch:** `8-feat/swagger`
+
+### Tasks
+- Install `@nestjs/swagger`.
+- Configure `SwaggerModule` in `main.ts` at path `/api`.
+- Add `@ApiTags`, `@ApiOperation`, `@ApiParam`, `@ApiResponse` decorators to `StockController`.
+- Decorate the `StockPriceResponse` DTO class with `@ApiProperty`.
+- Verify the Swagger UI loads at `http://localhost:3000/api`.
+
+### Acceptance criteria
+- Both endpoints are visible and documented in Swagger UI.
+- No broken types or missing descriptions on required fields.
+
+---
+
+## PR 9 — E2E / Integration Tests
+
+### Tasks
+- Write `test/stock.e2e-spec.ts` using `supertest` and an in-memory SQLite DB (or a test PostgreSQL container via `docker-compose`).
+- Test cases:
+  - `PUT /stock/AAPL` → 200 with tracking confirmation.
+  - `PUT /stock/AAPL` a second time → still 200 (idempotent).
+  - `GET /stock/AAPL` before any price is stored → 404.
+  - Seed a `StockPrice` row and `GET /stock/AAPL` → 200 with correct fields.
+  - `GET /stock/INVALID` → 404.
+- Mock `FinnhubService` in E2E context to avoid real HTTP calls.
+
+### Acceptance criteria
+- All E2E tests pass with `npm run test:e2e`.
+- No real network calls made during the test suite.
+
+---
+
+## Dependency Order
+
+```
+PR 1 (DB environment setup — merged first)
+  └─ PR 2 (CI pipeline)
+       └─ PR 3 (Prisma)
+            └─ PR 4 (Stock scaffold)
+                 └─ PR 5 (Finnhub)
+                      └─ PR 6 (Scheduler + storage)
+                           └─ PR 7 (Moving average + GET)
+                                ├─ PR 8 (Swagger)
+                                └─ PR 9 (E2E tests)
+```
