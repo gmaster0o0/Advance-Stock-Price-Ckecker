@@ -61,9 +61,30 @@ Key environment rule:
 
 ---
 
-## PR 3 — Prisma Service
+## PR 3 — Agentic Workflow Task
 
-**Branch:** `3-feat/prisma-service`
+**Branch:** `3-feat/agentic-workflow`
+
+### Tasks
+- Add an agentic workflow task that can coordinate and execute follow-up changes, tests, or documentation updates across the repo.
+- Define the task scope, decision rules, and expected output format in a markdown or config file.
+- Implement a lightweight orchestration helper or script that can:
+  - identify pending work items from the current branch,
+  - run targeted checks,
+  - propose the next PR or merge action.
+- Add tests or validation for the helper if applicable.
+- Document the new workflow in `docs/implementation-plan.md` or `README.md`.
+
+### Acceptance criteria
+- The repo contains a clear agentic workflow task tracked as PR 3.
+- The task is described well enough to be executed or reviewed as a standalone PR.
+- The new task appears in the dependency chain after PR 2.
+
+---
+
+## PR 4 — Prisma Service
+
+**Branch:** `4-feat/prisma-service`
 
 ### Tasks
 - Create `src/prisma/prisma.service.ts` extending `PrismaClient` and implementing `OnModuleInit` / `OnModuleDestroy` for connection lifecycle.
@@ -78,9 +99,9 @@ Key environment rule:
 
 ---
 
-## PR 4 — Stock Module Scaffold
+## PR 5 — Stock Module Scaffold
 
-**Branch:** `4-feat/stock-module`
+**Branch:** `5-feat/stock-module`
 
 ### Tasks
 - Generate `src/stock/stock.module.ts`, `stock.controller.ts`, `stock.service.ts` via Nest CLI.
@@ -96,9 +117,9 @@ Key environment rule:
 
 ---
 
-## PR 5 — Finnhub API Integration
+## PR 6 — Finnhub API Integration
 
-**Branch:** `5-feat/finnhub-integration`
+**Branch:** `6-feat/finnhub-integration`
 
 ### Tasks
 - Install `@nestjs/axios` and `axios`.
@@ -115,9 +136,9 @@ Key environment rule:
 
 ---
 
-## PR 6 — Scheduled Price Fetching & Storage
+## PR 7 — Scheduled Price Fetching & Storage
 
-**Branch:** `6-feat/scheduled-price-fetch`
+**Branch:** `7-feat/scheduled-price-fetch`
 
 ### Tasks
 - Install `@nestjs/schedule` and `node-cron` types (`@types/node-cron`).
@@ -136,9 +157,9 @@ Key environment rule:
 
 ---
 
-## PR 7 — Moving Average & GET Endpoint
+## PR 8 — Moving Average & GET Endpoint
 
-**Branch:** `7-feat/moving-average`
+**Branch:** `8-feat/moving-average`
 
 ### Tasks
 - Implement `StockService.getMovingAverage(symbol)` querying the last 10 `StockPrice` rows ordered by `timestamp DESC` via `PrismaService`.
@@ -162,9 +183,9 @@ Key environment rule:
 
 ---
 
-## PR 8 — Swagger Documentation
+## PR 9 — Swagger Documentation
 
-**Branch:** `8-feat/swagger`
+**Branch:** `9-feat/swagger`
 
 ### Tasks
 - Install `@nestjs/swagger`.
@@ -179,7 +200,7 @@ Key environment rule:
 
 ---
 
-## PR 9 — E2E / Integration Tests
+## PR 10 — E2E / Integration Tests
 
 ### Tasks
 - Write `test/stock.e2e-spec.ts` using `supertest` and an in-memory SQLite DB (or a test PostgreSQL container via `docker-compose`).
@@ -202,11 +223,12 @@ Key environment rule:
 ```
 PR 1 (DB environment setup — merged first)
   └─ PR 2 (CI pipeline)
-       └─ PR 3 (Prisma)
-            └─ PR 4 (Stock scaffold)
-                 └─ PR 5 (Finnhub)
-                      └─ PR 6 (Scheduler + storage)
-                           └─ PR 7 (Moving average + GET)
-                                ├─ PR 8 (Swagger)
-                                └─ PR 9 (E2E tests)
+       └─ PR 3 (Agentic workflow)
+            └─ PR 4 (Prisma)
+                 └─ PR 5 (Stock scaffold)
+                      └─ PR 6 (Finnhub)
+                           └─ PR 7 (Scheduler + storage)
+                                └─ PR 8 (Moving average + GET)
+                                     ├─ PR 9 (Swagger)
+                                     └─ PR 10 (E2E tests)
 ```
