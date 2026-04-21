@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { of, throwError } from 'rxjs';
 import { FinnhubService } from './finnhub.service';
-import { FinnhubQuote } from './interfaces/finnhub-quote.interface';
+import { emptyFinnhubQuote, validFinnhubQuote } from './stock.testdata';
 
 describe('FinnhubService', () => {
   let service: FinnhubService;
@@ -31,24 +31,15 @@ describe('FinnhubService', () => {
   });
 
   it('should return a FinnhubQuote when c > 0', async () => {
-    const quote: FinnhubQuote = {
-      c: 150,
-      h: 155,
-      l: 148,
-      o: 149,
-      pc: 147,
-      t: 1700000000,
-    };
-    httpService.get.mockReturnValue(of({ data: quote }));
+    httpService.get.mockReturnValue(of({ data: validFinnhubQuote }));
 
     const result = await service.getQuote('AAPL');
 
-    expect(result).toEqual(quote);
+    expect(result).toEqual(validFinnhubQuote);
   });
 
   it('should throw NotFoundException when c === 0', async () => {
-    const quote: FinnhubQuote = { c: 0, h: 0, l: 0, o: 0, pc: 0, t: 0 };
-    httpService.get.mockReturnValue(of({ data: quote }));
+    httpService.get.mockReturnValue(of({ data: emptyFinnhubQuote }));
 
     await expect(service.getQuote('INVALID')).rejects.toThrow(
       NotFoundException,
@@ -78,15 +69,7 @@ describe('FinnhubService', () => {
   });
 
   it('should call configService.getOrThrow with FINNHUB_API_KEY', async () => {
-    const quote: FinnhubQuote = {
-      c: 150,
-      h: 155,
-      l: 148,
-      o: 149,
-      pc: 147,
-      t: 1700000000,
-    };
-    httpService.get.mockReturnValue(of({ data: quote }));
+    httpService.get.mockReturnValue(of({ data: validFinnhubQuote }));
 
     await service.getQuote('AAPL');
 
