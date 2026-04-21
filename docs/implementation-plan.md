@@ -136,6 +136,23 @@ Key environment rule:
 
 ---
 
+## PR 9 — Swagger Documentation
+
+**Branch:** `9-feat/swagger`
+
+### Tasks
+- Install `@nestjs/swagger`.
+- Configure `SwaggerModule` in `main.ts` at path `/api`.
+- Add `@ApiTags`, `@ApiOperation`, `@ApiParam`, `@ApiResponse` decorators to `StockController`.
+- Decorate the `StockPriceResponse` DTO class with `@ApiProperty`.
+- Verify the Swagger UI loads at `http://localhost:3000/api`.
+
+### Acceptance criteria
+- Both endpoints are visible and documented in Swagger UI.
+- No broken types or missing descriptions on required fields.
+
+---
+
 ## PR 7 — Scheduled Price Fetching & Storage
 
 **Branch:** `7-feat/scheduled-price-fetch`
@@ -227,8 +244,8 @@ PR 1 (DB environment setup — merged first)
             └─ PR 4 (Prisma)
                  └─ PR 5 (Stock scaffold)
                       └─ PR 6 (Finnhub)
-                           └─ PR 7 (Scheduler + storage)
-                                └─ PR 8 (Moving average + GET)
-                                     ├─ PR 9 (Swagger)
-                                     └─ PR 10 (E2E tests)
+                           └─ PR 9 (Swagger)
+                                └─ PR 7 (Scheduler + storage)
+                                     └─ PR 8 (Moving average + GET)
+                                          └─ PR 10 (E2E tests)
 ```
