@@ -35,7 +35,8 @@ Key environment rule:
 **Branch:** `2-ci/github-actions`
 
 ### Tasks
-- Create `.github/workflows/ci.yml` that triggers on every pull request to `main`.
+- Create `.github/workflows/ci.yml` that triggers on every pull request to `master`.
+- Also allow `main` for future branch compatibility.
 - Pipeline has two parallel jobs: `ci` and `docker`.
 - `ci` job steps:
   1. Checkout code.

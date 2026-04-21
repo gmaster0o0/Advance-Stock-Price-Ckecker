@@ -51,7 +51,7 @@ This removes only the `postgres-test` service and does not affect development da
 
 ## CI Pipeline
 
-Every pull request targeting `main` runs the GitHub Actions workflow at `.github/workflows/ci.yml`.
+Every pull request targeting `master` or `main` runs the GitHub Actions workflow at `.github/workflows/ci.yml`.
 
 | Job | Steps |
 |-----|-------|
