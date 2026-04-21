@@ -1,4 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
+
+process.env.DATABASE_URL ??= 'postgresql://localhost:5432/test?schema=public';
+
 import { PrismaService } from './prisma.service';
 
 jest.mock('@prisma/client', () => {

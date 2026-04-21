@@ -13,7 +13,7 @@ cp .env.example .env
 2. Start only the persistent development database:
 
 ```bash
-docker compose up -d postgres-dev
+npm run db:dev:up
 ```
 
 3. Run Prisma commands against the development database:
@@ -34,7 +34,7 @@ Tests and CI must use `TEST_DATABASE_URL`, not the development `DATABASE_URL`.
 To run a disposable local test database:
 
 ```bash
-docker compose --profile test up -d postgres-test
+npm run db:test:up
 ```
 
 The `postgres-test` service uses `tmpfs`, so its data is ephemeral.
@@ -44,7 +44,7 @@ The `postgres-test` service uses `tmpfs`, so its data is ephemeral.
 Stop and remove the temporary test database service:
 
 ```bash
-docker compose --profile test down
+npm run db:test:down
 ```
 
 This removes only the `postgres-test` service and does not affect development data or the `postgres-dev` service.

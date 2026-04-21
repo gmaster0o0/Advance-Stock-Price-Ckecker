@@ -20,12 +20,16 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "db:init": "prisma migrate dev --name init",
+    "db:dev:up": "docker compose up -d postgres-dev",
+    "db:test:up": "docker compose --profile test up -d postgres-test",
+    "db:test:down": "docker compose --profile test down",
     "prepare": "husky"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "@prisma/adapter-pg": "^7.7.0",
     "@prisma/client": "^7.7.0",
     "lint-staged": "^16.4.0",
     "reflect-metadata": "^0.2.2",
