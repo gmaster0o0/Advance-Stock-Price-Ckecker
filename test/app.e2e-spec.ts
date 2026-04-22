@@ -24,7 +24,16 @@ describe('AppController (e2e)', () => {
     return request(app.getHttpServer())
       .get('/')
       .expect(200)
-      .expect('Hello World!');
+      .expect((res: request.Response) => {
+        const body = res.body as {
+          status: string;
+          database: string;
+          timestamp: string;
+        };
+        expect(body).toHaveProperty('status');
+        expect(body).toHaveProperty('database');
+        expect(body).toHaveProperty('timestamp');
+      });
   });
 
   it('/api (GET) - Swagger UI', () => {

@@ -9,7 +9,7 @@ Key environment rule:
 
 ---
 
-## PR 1 — Database Environment Setup
+## PR 1 — Database Environment Setup (Completed)
 
 **Branch:** `1-infra/db-environment`
 
@@ -30,7 +30,7 @@ Key environment rule:
 
 ---
 
-## PR 2 — CI Pipeline
+## PR 2 — CI Pipeline (Completed)
 
 **Branch:** `2-ci/github-actions`
 
@@ -61,7 +61,7 @@ Key environment rule:
 
 ---
 
-## PR 3 — Agentic Workflow Task
+## PR 3 — Agentic Workflow Task (Completed)
 
 **Branch:** `3-feat/agentic-workflow`
 
@@ -82,7 +82,7 @@ Key environment rule:
 
 ---
 
-## PR 4 — Prisma Service
+## PR 4 — Prisma Service (Completed)
 
 **Branch:** `4-feat/prisma-service`
 
@@ -99,7 +99,7 @@ Key environment rule:
 
 ---
 
-## PR 5 — Stock Module Scaffold
+## PR 5 — Stock Module Scaffold (Completed)
 
 **Branch:** `5-feat/stock-module`
 
@@ -117,7 +117,7 @@ Key environment rule:
 
 ---
 
-## PR 6 — Finnhub API Integration
+## PR 6 — Finnhub API Integration (Completed)
 
 **Branch:** `6-feat/finnhub-integration`
 
@@ -136,7 +136,7 @@ Key environment rule:
 
 ---
 
-## PR 9 — Swagger Documentation
+## PR 9 — Swagger Documentation (Completed)
 
 **Branch:** `9-feat/swagger`
 
@@ -232,3 +232,17 @@ PR 1 (DB environment setup — merged first)
                                      └─ PR 8 (Moving average + GET)
                                           └─ PR 10 (E2E tests)
 ```
+
+## Additional Tasks:
+
+### Simple Healthcheck (Completed)
+
+**Branch:** `11-feat/healthcheck`
+
+#### Tasks
+- Replace the generic `GET /` endpoint with a health check that verifies database connectivity.
+- Implement `HealthResponseDto` for structured API responses.
+- Add comprehensive unit and E2E tests for the health check.
+- Ensure type safety, linting compliance, and test passing.
+
+- Later consideration: use @nestjs/terminus for a more robust health check system.
