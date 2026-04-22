@@ -4,6 +4,10 @@ import request, { Response } from 'supertest';
 import { AppModule } from './../src/app.module';
 import { FinnhubService } from './../src/stock/finnhub.service';
 import { PrismaService } from './../src/prisma/prisma.service';
+import {
+  movingAverageSeedPrices,
+  movingAverageTestSymbol,
+} from './stock.e2e-testdata';
 
 describe('Stock (e2e)', () => {
   let app: INestApplication;
@@ -76,16 +80,22 @@ describe('Stock (e2e)', () => {
 
   describe('GET /stock/:symbol', () => {
     it('should return stock data with moving average', async () => {
-      const symbol = 'AAPL';
-      const prices = [150, 160, 170];
-      const expectedMA = (150 + 160 + 170) / 3;
+      const symbol = movingAverageTestSymbol;
+      const prices = movingAverageSeedPrices;
+      const latestTenPrices = prices.slice(-10);
+      const expectedMA =
+        latestTenPrices.reduce((sum, price) => sum + price, 0) /
+        latestTenPrices.length;
+      const expectedCurrentPrice = prices[prices.length - 1];
+      const baseTimestamp = new Date('2026-04-21T10:00:00.000Z');
 
       // Seed database
-      for (const price of prices) {
+      for (const [index, price] of prices.entries()) {
         await prisma.stockPrice.create({
           data: {
             symbol,
             price,
+            timestamp: new Date(baseTimestamp.getTime() + index * 60_000),
           },
         });
       }
@@ -96,7 +106,7 @@ describe('Stock (e2e)', () => {
         .expect((res: Response) => {
           expect(res.body).toEqual({
             symbol,
-            currentPrice: 170, // Last inserted
+            currentPrice: expectedCurrentPrice,
             movingAverage: expectedMA,
             lastUpdated: expect.any(String) as string,
           });
