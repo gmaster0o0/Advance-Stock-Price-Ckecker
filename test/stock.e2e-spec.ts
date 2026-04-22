@@ -3,10 +3,15 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request, { Response } from 'supertest';
 import { AppModule } from './../src/app.module';
 import { FinnhubService } from './../src/stock/finnhub.service';
-import { emptyStockPriceResponse } from './../src/stock/stock.testdata';
+import { PrismaService } from './../src/prisma/prisma.service';
+import {
+  movingAverageSeedPrices,
+  movingAverageTestSymbol,
+} from './stock.e2e-testdata';
 
 describe('Stock (e2e)', () => {
   let app: INestApplication;
+  let prisma: PrismaService;
   const mockFinnhubService = {
     getQuote: jest.fn(),
   };
@@ -20,11 +25,17 @@ describe('Stock (e2e)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
+    prisma = app.get<PrismaService>(PrismaService);
     await app.init();
   });
 
   afterAll(async () => {
+    await prisma.stockPrice.deleteMany();
     await app.close();
+  });
+
+  beforeEach(async () => {
+    await prisma.stockPrice.deleteMany();
   });
 
   describe('GET /stock', () => {
@@ -68,17 +79,44 @@ describe('Stock (e2e)', () => {
   });
 
   describe('GET /stock/:symbol', () => {
-    it('should return stock data', () => {
+    it('should return stock data with moving average', async () => {
+      const symbol = movingAverageTestSymbol;
+      const prices = movingAverageSeedPrices;
+      const latestTenPrices = prices.slice(-10);
+      const expectedMA =
+        latestTenPrices.reduce((sum, price) => sum + price, 0) /
+        latestTenPrices.length;
+      const expectedCurrentPrice = prices[prices.length - 1];
+      const baseTimestamp = new Date('2026-04-21T10:00:00.000Z');
+
+      // Seed database
+      for (const [index, price] of prices.entries()) {
+        await prisma.stockPrice.create({
+          data: {
+            symbol,
+            price,
+            timestamp: new Date(baseTimestamp.getTime() + index * 60_000),
+          },
+        });
+      }
+
       return request(app.getHttpServer() as string)
-        .get('/stock/AAPL')
+        .get(`/stock/${symbol}`)
         .expect(200)
         .expect((res: Response) => {
           expect(res.body).toEqual({
-            symbol: 'AAPL',
-            ...emptyStockPriceResponse,
+            symbol,
+            currentPrice: expectedCurrentPrice,
+            movingAverage: expectedMA,
             lastUpdated: expect.any(String) as string,
           });
         });
+    });
+
+    it('should return 404 for unknown symbol', () => {
+      return request(app.getHttpServer() as string)
+        .get('/stock/UNKNOWN')
+        .expect(404);
     });
   });
 

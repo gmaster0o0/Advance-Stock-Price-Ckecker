@@ -14,13 +14,26 @@ export class StockService {
     private readonly finnhubService: FinnhubService,
   ) {}
 
-  getStock(_symbol: string): StockPriceResponse {
-    // Placeholder implementation
+  async getMovingAverage(symbol: string): Promise<StockPriceResponse | null> {
+    const prices = await this.prismaService.stockPrice.findMany({
+      where: { symbol },
+      orderBy: { timestamp: 'desc' },
+      take: 10,
+    });
+
+    if (prices.length === 0) {
+      return null;
+    }
+
+    const latest = prices[0];
+    const sum = prices.reduce((acc, curr) => acc + curr.price, 0);
+    const movingAverage = sum / prices.length;
+
     return {
-      symbol: _symbol,
-      currentPrice: 0,
-      movingAverage: 0,
-      lastUpdated: new Date(),
+      symbol,
+      currentPrice: latest.price,
+      movingAverage,
+      lastUpdated: latest.timestamp,
     };
   }
 

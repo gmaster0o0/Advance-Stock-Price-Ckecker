@@ -1,13 +1,17 @@
 export default {
   moduleFileExtensions: ['js', 'json', 'ts'],
   rootDir: 'src',
-  testRegex: '.*\.spec\.ts$',
+  testRegex: '.*\\.spec\\.ts$',
   transform: {
-    '^.+\.(t|j)s$': 'ts-jest',
+    '^.+\\.(t|j)s$': 'ts-jest',
   },
   setupFiles: ['<rootDir>/../test/setup-test-env.ts'],
   collectCoverageFrom: ['**/*.(t|j)s'],
-  coveragePathIgnorePatterns: ['<rootDir>/swagger/swagger.helper.ts'],
+  coveragePathIgnorePatterns: [
+    '<rootDir>/swagger/swagger\\.helper\\.ts$',
+    '<rootDir>/.*\\.module\\.ts$',
+    '<rootDir>/main\\.ts$',
+  ],
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
 };
