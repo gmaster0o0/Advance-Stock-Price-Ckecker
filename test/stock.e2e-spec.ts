@@ -1,6 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import request from 'supertest';
+import request, { Response } from 'supertest';
 import { AppModule } from './../src/app.module';
 
 describe('Stock (e2e)', () => {
@@ -20,18 +20,31 @@ describe('Stock (e2e)', () => {
   });
 
   describe('GET /stock/:symbol', () => {
-    it('should return 501 Not Implemented', () => {
+    it('should return stock data', () => {
       return request(app.getHttpServer() as string)
         .get('/stock/AAPL')
-        .expect(501);
+        .expect(200)
+        .expect((res: Response) => {
+          expect(res.body).toEqual({
+            symbol: 'AAPL',
+            currentPrice: 0,
+            movingAverage: 0,
+            lastUpdated: expect.any(String) as string,
+          });
+        });
     });
   });
 
   describe('PUT /stock/:symbol', () => {
-    it('should return 501 Not Implemented', () => {
+    it('should start tracking a stock', () => {
       return request(app.getHttpServer() as string)
         .put('/stock/AAPL')
-        .expect(501);
+        .expect(200)
+        .expect((res) => {
+          expect(res.body).toEqual({
+            message: 'Tracking started for AAPL',
+          });
+        });
     });
   });
 });
