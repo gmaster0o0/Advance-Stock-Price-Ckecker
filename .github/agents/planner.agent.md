@@ -2,7 +2,8 @@
 description: 'Create implementation plans after researching the codebase and verifying external documentation.'
 name: 'Planner'
 argument-hint: 'Describe the feature, bug, refactor, or decision that needs a plan.'
-tools: [read, search, web, mcp_context7/*]
+tools: [read, search, web, context7/*]
+model: GPT-5.4 (copilot)
 user-invocable: true
 handoffs:
   - label: Return to Orchestrator

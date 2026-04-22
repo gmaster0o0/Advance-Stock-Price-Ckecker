@@ -25,7 +25,9 @@ describe('StockController', () => {
       mockStockService.getStock.mockImplementation(() => {
         throw new HttpException('Not Implemented', HttpStatus.NOT_IMPLEMENTED);
       });
-      expect(() => controller.getStock('AAPL')).toThrow(HttpException);
+      expect(() => controller.getStock({ symbol: 'AAPL' })).toThrow(
+        HttpException,
+      );
       expect(mockStockService.getStock).toHaveBeenCalledWith('AAPL');
     });
 
@@ -34,7 +36,7 @@ describe('StockController', () => {
         throw new HttpException('Not Implemented', HttpStatus.NOT_IMPLEMENTED);
       });
       try {
-        controller.getStock('AAPL');
+        controller.getStock({ symbol: 'AAPL' });
       } catch (err) {
         if (err instanceof HttpException) {
           expect(err.getStatus()).toBe(501);
@@ -48,7 +50,9 @@ describe('StockController', () => {
       mockStockService.trackStock.mockImplementation(() => {
         throw new HttpException('Not Implemented', HttpStatus.NOT_IMPLEMENTED);
       });
-      expect(() => controller.trackStock('AAPL')).toThrow(HttpException);
+      expect(() => controller.trackStock({ symbol: 'AAPL' })).toThrow(
+        HttpException,
+      );
       expect(mockStockService.trackStock).toHaveBeenCalledWith('AAPL');
     });
 
@@ -57,7 +61,7 @@ describe('StockController', () => {
         throw new HttpException('Not Implemented', HttpStatus.NOT_IMPLEMENTED);
       });
       try {
-        controller.trackStock('AAPL');
+        controller.trackStock({ symbol: 'AAPL' });
       } catch (err) {
         if (err instanceof HttpException) {
           expect(err.getStatus()).toBe(501);

@@ -1,7 +1,8 @@
 ---
 description: 'NestJS developer for backend services, CI, Prisma, testing, and Docker workflows.'
 name: 'NestJS Developer'
-tools: [read, edit, search, execute, todo]
+tools: [read, edit, search, execute, todo, context7/*]
+model: GPT-5.3-Codex (copilot)
 user-invocable: true
 handoffs:
   - label: Return to Orchestrator

@@ -3,6 +3,7 @@ description: 'Coordinate Planner, NestJS Developer, and Tester agents to complet
 name: 'Orchestrator'
 argument-hint: 'Describe the feature, bug, or task you want done end-to-end.'
 tools: [agent, todo]
+model: Gemini 3 Flash (Preview) (copilot)
 agents: ['Planner', 'NestJS Developer', 'Tester']
 user-invocable: true
 ---
@@ -61,6 +62,11 @@ After each agent completes, report one short status line before delegating the n
 [FIX ✓]   Fix applied — re-running tests.
 [DONE]    All steps complete — <one-sentence summary>.
 ```
+
+## Complexity Routing
+
+- **Low Complexity (Small fixes):** Direct delegation to NestJS Developer, skip Planner.
+- **High Complexity (New features/API integration):** Full workflow (Plan -> Build -> Test).
 
 ## Final Summary
 

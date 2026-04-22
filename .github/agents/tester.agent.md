@@ -2,7 +2,8 @@
 description: 'Write, run, and analyse Jest unit and e2e tests for this NestJS project.'
 name: 'Tester'
 argument-hint: 'Describe what you want tested: a specific service, controller, module, or e2e scenario.'
-tools: [read, search, edit, execute, todo]
+tools: [read, search, edit, execute, todo, context7/*]
+model: Claude Haiku 4.5 (copilot)
 user-invocable: true
 handoffs:
   - label: Return to Orchestrator

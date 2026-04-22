@@ -21,13 +21,17 @@ describe('Stock (e2e)', () => {
 
   describe('GET /stock/:symbol', () => {
     it('should return 501 Not Implemented', () => {
-      return request(app.getHttpServer()).get('/stock/AAPL').expect(501);
+      return request(app.getHttpServer() as string)
+        .get('/stock/AAPL')
+        .expect(501);
     });
   });
 
   describe('PUT /stock/:symbol', () => {
     it('should return 501 Not Implemented', () => {
-      return request(app.getHttpServer()).put('/stock/AAPL').expect(501);
+      return request(app.getHttpServer() as string)
+        .put('/stock/AAPL')
+        .expect(501);
     });
   });
 });
