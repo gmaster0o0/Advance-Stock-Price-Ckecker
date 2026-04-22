@@ -19,6 +19,7 @@ export class AppService {
     }
 
     return {
+      // Readiness-style health check: overall status is DOWN if any critical component is down
       status: dbStatus,
       database: dbStatus,
       timestamp: new Date().toISOString(),
