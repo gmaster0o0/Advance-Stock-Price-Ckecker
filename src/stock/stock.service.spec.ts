@@ -3,7 +3,12 @@ import { Logger } from '@nestjs/common';
 import { StockService } from './stock.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { FinnhubService } from './finnhub.service';
-import { validFinnhubQuote } from './stock.testdata';
+import {
+  validFinnhubQuote,
+  stockPriceTimestamp,
+  aaplPriceHistory,
+  msftSinglePriceHistory,
+} from './stock.testdata';
 
 describe('StockService', () => {
   let service: StockService;
@@ -121,11 +126,7 @@ describe('StockService', () => {
   describe('getMovingAverage', () => {
     it('should return the moving average and latest price when data exists', async () => {
       const symbol = 'AAPL';
-      const timestamp = new Date();
-      const mockPrices = [
-        { symbol, price: 150, timestamp },
-        { symbol, price: 100, timestamp },
-      ];
+      const mockPrices = aaplPriceHistory;
 
       mockPrismaService.stockPrice.findMany.mockResolvedValue(mockPrices);
 
@@ -135,7 +136,7 @@ describe('StockService', () => {
         symbol,
         currentPrice: 150,
         movingAverage: 125,
-        lastUpdated: timestamp,
+        lastUpdated: stockPriceTimestamp,
       });
       expect(mockPrismaService.stockPrice.findMany).toHaveBeenCalledWith({
         where: { symbol },
@@ -154,7 +155,7 @@ describe('StockService', () => {
 
     it('should handle less than 10 records correctly', async () => {
       const symbol = 'MSFT';
-      const mockPrices = [{ symbol, price: 200, timestamp: new Date() }];
+      const mockPrices = msftSinglePriceHistory;
 
       mockPrismaService.stockPrice.findMany.mockResolvedValue(mockPrices);
 
