@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
@@ -13,6 +14,16 @@ describe('AppController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+
+    const config = new DocumentBuilder()
+      .setTitle('Stock Price Checker')
+      .setDescription('API for tracking and analyzing stock prices')
+      .setVersion('1.0')
+      .addTag('stock')
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, document);
+
     await app.init();
   });
 
@@ -21,6 +32,14 @@ describe('AppController (e2e)', () => {
       .get('/')
       .expect(200)
       .expect('Hello World!');
+  });
+
+  it('/api (GET) - Swagger UI', () => {
+    return request(app.getHttpServer())
+      .get('/api')
+      .expect(200)
+      .expect('Content-Type', /html/)
+      .expect(/<title>Swagger UI<\/title>/);
   });
 
   afterEach(async () => {

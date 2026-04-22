@@ -1,5 +1,5 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { StockPriceResponse } from './interfaces/stock-price-response.interface';
+import { StockPriceResponse } from './dto/stock-price-response.dto';
 
 @Injectable()
 export class StockService {
