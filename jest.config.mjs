@@ -7,6 +7,7 @@ export default {
   },
   setupFiles: ['<rootDir>/../test/setup-test-env.ts'],
   collectCoverageFrom: ['**/*.(t|j)s'],
+  coveragePathIgnorePatterns: ['<rootDir>/swagger/swagger.helper.ts'],
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
 };

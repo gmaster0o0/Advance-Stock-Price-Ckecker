@@ -3,6 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
+import { setupSwagger } from './../src/swagger/swagger.helper';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;
@@ -13,6 +14,9 @@ describe('AppController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+
+    setupSwagger(app);
+
     await app.init();
   });
 
@@ -21,6 +25,14 @@ describe('AppController (e2e)', () => {
       .get('/')
       .expect(200)
       .expect('Hello World!');
+  });
+
+  it('/api (GET) - Swagger UI', () => {
+    return request(app.getHttpServer())
+      .get('/api')
+      .expect(200)
+      .expect('Content-Type', /html/)
+      .expect(/<title>Swagger UI<\/title>/);
   });
 
   afterEach(async () => {
