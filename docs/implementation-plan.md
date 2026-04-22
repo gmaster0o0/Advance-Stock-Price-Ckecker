@@ -251,6 +251,8 @@ PR 1 (DB environment setup — merged first)
 
 **Branch:** `12-feat/schedule-untrack`
 
+Target branch: `7-feat/scheduled-price-fetch` (since it depends on the tracking mechanism)
+
 #### Tasks
 - Implement `DELETE /stock/:symbol` to remove the symbol from `trackedSymbols` and return `{ message: 'Tracking stopped for <SYMBOL>' }`.
 - Ensure idempotency: calling it multiple times for the same symbol should not cause errors.
@@ -260,6 +262,8 @@ PR 1 (DB environment setup — merged first)
 ### List tracked symbols endpoint
 
 **Branch:** `13-feat/list-tracked-symbols`
+
+Target branch: `7-feat/scheduled-price-fetch` (since it depends on the tracking mechanism)
 
 #### Tasks
 - Implement `GET /stock` to return a list of currently tracked symbols.

@@ -3,10 +3,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request, { Response } from 'supertest';
 import { AppModule } from './../src/app.module';
 import { FinnhubService } from './../src/stock/finnhub.service';
-import { emptyStockPriceResponse } from './../src/stock/stock.testdata';
+import { PrismaService } from './../src/prisma/prisma.service';
 
 describe('Stock (e2e)', () => {
   let app: INestApplication;
+  let prisma: PrismaService;
   const mockFinnhubService = {
     getQuote: jest.fn(),
   };
@@ -20,11 +21,17 @@ describe('Stock (e2e)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
+    prisma = app.get<PrismaService>(PrismaService);
     await app.init();
   });
 
   afterAll(async () => {
+    await prisma.stockPrice.deleteMany();
     await app.close();
+  });
+
+  beforeEach(async () => {
+    await prisma.stockPrice.deleteMany();
   });
 
   describe('GET /stock', () => {
@@ -68,17 +75,38 @@ describe('Stock (e2e)', () => {
   });
 
   describe('GET /stock/:symbol', () => {
-    it('should return stock data', () => {
+    it('should return stock data with moving average', async () => {
+      const symbol = 'AAPL';
+      const prices = [150, 160, 170];
+      const expectedMA = (150 + 160 + 170) / 3;
+
+      // Seed database
+      for (const price of prices) {
+        await prisma.stockPrice.create({
+          data: {
+            symbol,
+            price,
+          },
+        });
+      }
+
       return request(app.getHttpServer() as string)
-        .get('/stock/AAPL')
+        .get(`/stock/${symbol}`)
         .expect(200)
         .expect((res: Response) => {
           expect(res.body).toEqual({
-            symbol: 'AAPL',
-            ...emptyStockPriceResponse,
+            symbol,
+            currentPrice: 170, // Last inserted
+            movingAverage: expectedMA,
             lastUpdated: expect.any(String) as string,
           });
         });
+    });
+
+    it('should return 404 for unknown symbol', () => {
+      return request(app.getHttpServer() as string)
+        .get('/stock/UNKNOWN')
+        .expect(404);
     });
   });
 

@@ -1,4 +1,11 @@
-import { Controller, Get, Put, Delete, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Put,
+  Delete,
+  Param,
+  NotFoundException,
+} from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { StockService } from './stock.service';
 import { StockParamDto } from './dto/stock-param.dto';
@@ -30,8 +37,12 @@ export class StockController {
   })
   @ApiResponse({ status: 404, description: 'Stock data not found' })
   @Get(':symbol')
-  getStock(@Param() params: StockParamDto): StockPriceResponse {
-    return this.stockService.getStock(params.symbol);
+  async getStock(@Param() params: StockParamDto): Promise<StockPriceResponse> {
+    const result = await this.stockService.getMovingAverage(params.symbol);
+    if (!result) {
+      throw new NotFoundException(`Stock data for ${params.symbol} not found`);
+    }
+    return result;
   }
 
   @ApiOperation({ summary: 'Start tracking a stock symbol' })

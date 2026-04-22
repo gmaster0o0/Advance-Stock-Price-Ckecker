@@ -1,12 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import { StockController } from './stock.controller';
 import { StockService } from './stock.service';
 
 describe('StockController', () => {
   let controller: StockController;
   const mockStockService = {
-    getStock: jest.fn(),
+    getMovingAverage: jest.fn(),
     trackStock: jest.fn(),
     untrackStock: jest.fn(),
     getTrackedSymbols: jest.fn(),
@@ -43,52 +43,36 @@ describe('StockController', () => {
   });
 
   describe('getStock', () => {
-    it('should delegate to StockService.getStock with the symbol', () => {
-      mockStockService.getStock.mockImplementation(() => {
-        throw new HttpException('Not Implemented', HttpStatus.NOT_IMPLEMENTED);
-      });
-      expect(() => controller.getStock({ symbol: 'AAPL' })).toThrow(
-        HttpException,
-      );
-      expect(mockStockService.getStock).toHaveBeenCalledWith('AAPL');
+    it('should delegate to StockService.getMovingAverage with the symbol', async () => {
+      const mockResult = {
+        symbol: 'AAPL',
+        currentPrice: 150,
+        movingAverage: 140,
+        lastUpdated: new Date(),
+      };
+      mockStockService.getMovingAverage.mockResolvedValue(mockResult);
+
+      const result = await controller.getStock({ symbol: 'AAPL' });
+
+      expect(mockStockService.getMovingAverage).toHaveBeenCalledWith('AAPL');
+      expect(result).toBe(mockResult);
     });
 
-    it('should throw 501 Not Implemented', () => {
-      mockStockService.getStock.mockImplementation(() => {
-        throw new HttpException('Not Implemented', HttpStatus.NOT_IMPLEMENTED);
-      });
-      try {
-        controller.getStock({ symbol: 'AAPL' });
-      } catch (err) {
-        if (err instanceof HttpException) {
-          expect(err.getStatus()).toBe(501);
-        }
-      }
+    it('should throw NotFoundException if stock service returns null', async () => {
+      mockStockService.getMovingAverage.mockResolvedValue(null);
+
+      await expect(controller.getStock({ symbol: 'UNKNOWN' })).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
   describe('trackStock', () => {
     it('should delegate to StockService.trackStock with the symbol', () => {
-      mockStockService.trackStock.mockImplementation(() => {
-        throw new HttpException('Not Implemented', HttpStatus.NOT_IMPLEMENTED);
-      });
-      expect(() => controller.trackStock({ symbol: 'AAPL' })).toThrow(
-        HttpException,
-      );
+      const response = { message: 'Tracking started for AAPL' };
+      mockStockService.trackStock.mockReturnValue(response);
+      expect(controller.trackStock({ symbol: 'AAPL' })).toEqual(response);
       expect(mockStockService.trackStock).toHaveBeenCalledWith('AAPL');
-    });
-
-    it('should throw 501 Not Implemented', () => {
-      mockStockService.trackStock.mockImplementation(() => {
-        throw new HttpException('Not Implemented', HttpStatus.NOT_IMPLEMENTED);
-      });
-      try {
-        controller.trackStock({ symbol: 'AAPL' });
-      } catch (err) {
-        if (err instanceof HttpException) {
-          expect(err.getStatus()).toBe(501);
-        }
-      }
     });
   });
 

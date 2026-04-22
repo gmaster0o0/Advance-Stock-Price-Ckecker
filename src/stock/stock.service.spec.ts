@@ -13,6 +13,7 @@ describe('StockService', () => {
   const mockPrismaService = {
     stockPrice: {
       create: jest.fn(),
+      findMany: jest.fn(),
     },
   };
 
@@ -114,6 +115,53 @@ describe('StockService', () => {
       service.untrackStock('AAPL');
 
       expect(service.getTrackedSymbols()).toEqual(['MSFT']);
+    });
+  });
+
+  describe('getMovingAverage', () => {
+    it('should return the moving average and latest price when data exists', async () => {
+      const symbol = 'AAPL';
+      const timestamp = new Date();
+      const mockPrices = [
+        { symbol, price: 150, timestamp },
+        { symbol, price: 100, timestamp },
+      ];
+
+      mockPrismaService.stockPrice.findMany.mockResolvedValue(mockPrices);
+
+      const result = await service.getMovingAverage(symbol);
+
+      expect(result).toEqual({
+        symbol,
+        currentPrice: 150,
+        movingAverage: 125,
+        lastUpdated: timestamp,
+      });
+      expect(mockPrismaService.stockPrice.findMany).toHaveBeenCalledWith({
+        where: { symbol },
+        orderBy: { timestamp: 'desc' },
+        take: 10,
+      });
+    });
+
+    it('should return null when no data exists', async () => {
+      mockPrismaService.stockPrice.findMany.mockResolvedValue([]);
+
+      const result = await service.getMovingAverage('UNKNOWN');
+
+      expect(result).toBeNull();
+    });
+
+    it('should handle less than 10 records correctly', async () => {
+      const symbol = 'MSFT';
+      const mockPrices = [{ symbol, price: 200, timestamp: new Date() }];
+
+      mockPrismaService.stockPrice.findMany.mockResolvedValue(mockPrices);
+
+      const result = await service.getMovingAverage(symbol);
+
+      expect(result).not.toBeNull();
+      expect(result!.movingAverage).toBe(200);
     });
   });
 
