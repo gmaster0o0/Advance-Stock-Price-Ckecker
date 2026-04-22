@@ -2,7 +2,7 @@
 description: 'Coordinate Planner, NestJS Developer, and Tester agents to complete features end-to-end without writing code.'
 name: 'Orchestrator'
 argument-hint: 'Describe the feature, bug, or task you want done end-to-end.'
-tools: [agent, todo, vscode/askQuestions]
+tools: [agent, todo]
 model: Gemini 3 Flash (Preview) (copilot)
 agents: ['Planner', 'NestJS Developer', 'Tester']
 user-invocable: true
