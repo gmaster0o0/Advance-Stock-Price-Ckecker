@@ -8,6 +8,7 @@ describe('StockController', () => {
   const mockStockService = {
     getStock: jest.fn(),
     trackStock: jest.fn(),
+    untrackStock: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -67,6 +68,27 @@ describe('StockController', () => {
           expect(err.getStatus()).toBe(501);
         }
       }
+    });
+  });
+
+  describe('untrackStock', () => {
+    it('should delegate to StockService.untrackStock with the symbol', () => {
+      const response = { message: 'Stock untracked successfully' };
+      mockStockService.untrackStock.mockReturnValue(response);
+
+      const result = controller.untrackStock({ symbol: 'AAPL' });
+
+      expect(mockStockService.untrackStock).toHaveBeenCalledWith('AAPL');
+      expect(result).toEqual(response);
+    });
+
+    it('should return the response from the service', () => {
+      const response = { message: 'Symbol was not being tracked' };
+      mockStockService.untrackStock.mockReturnValue(response);
+
+      const result = controller.untrackStock({ symbol: 'MSFT' });
+
+      expect(result).toBe(response);
     });
   });
 });
