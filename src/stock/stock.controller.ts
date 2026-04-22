@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Param } from '@nestjs/common';
+import { Controller, Get, Put, Delete, Param } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { StockService } from './stock.service';
 import { StockParamDto } from './dto/stock-param.dto';
@@ -29,5 +29,13 @@ export class StockController {
   @Put(':symbol')
   trackStock(@Param() params: StockParamDto): { message: string } {
     return this.stockService.trackStock(params.symbol);
+  }
+
+  @ApiOperation({ summary: 'Stop tracking a stock symbol' })
+  @ApiParam({ name: 'symbol', description: 'Stock symbol (e.g., AAPL)' })
+  @ApiResponse({ status: 200, description: 'Tracking stopped' })
+  @Delete(':symbol')
+  untrackStock(@Param() params: StockParamDto): { message: string } {
+    return this.stockService.untrackStock(params.symbol);
   }
 }
