@@ -80,6 +80,36 @@ describe('StockService', () => {
     });
   });
 
+  describe('getTrackedSymbols', () => {
+    it('should return an empty array when no symbols are tracked', () => {
+      expect(service.getTrackedSymbols()).toEqual([]);
+    });
+
+    it('should return a list of all currently tracked symbols', () => {
+      const symbols = ['AAPL', 'MSFT', 'GOOGL'];
+      symbols.forEach((s) => service.trackStock(s));
+
+      const tracked = service.getTrackedSymbols();
+      expect(tracked).toHaveLength(symbols.length);
+      expect(tracked).toEqual(expect.arrayContaining(symbols));
+    });
+
+    it('should not contain duplicate symbols', () => {
+      service.trackStock('AAPL');
+      service.trackStock('AAPL');
+
+      expect(service.getTrackedSymbols()).toEqual(['AAPL']);
+    });
+
+    it('should reflect symbols removed via untrackStock', () => {
+      service.trackStock('AAPL');
+      service.trackStock('MSFT');
+      service.untrackStock('AAPL');
+
+      expect(service.getTrackedSymbols()).toEqual(['MSFT']);
+    });
+  });
+
   describe('handleCron', () => {
     it('should fetch quotes and save prices for all tracked symbols', async () => {
       const symbols = ['AAPL', 'MSFT'];

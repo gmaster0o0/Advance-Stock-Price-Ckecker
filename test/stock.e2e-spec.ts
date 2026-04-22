@@ -26,6 +26,46 @@ describe('Stock (e2e)', () => {
     await app.close();
   });
 
+  describe('GET /stock', () => {
+    it('should return an empty array initially', () => {
+      return request(app.getHttpServer() as string)
+        .get('/stock')
+        .expect(200)
+        .expect((res) => {
+          expect(res.body).toEqual({ symbols: [] });
+        });
+    });
+
+    it('should return symbols after tracking them', async () => {
+      const symbol = 'AAPL';
+      // 1. Start tracking
+      await request(app.getHttpServer() as string)
+        .put(`/stock/${symbol}`)
+        .expect(200);
+
+      // 2. Check tracked symbols
+      await request(app.getHttpServer() as string)
+        .get('/stock')
+        .expect(200)
+        .expect((res) => {
+          expect(res.body).toEqual({ symbols: [symbol] });
+        });
+
+      // 3. Stop tracking
+      await request(app.getHttpServer() as string)
+        .delete(`/stock/${symbol}`)
+        .expect(200);
+
+      // 4. Check tracked symbols again
+      await request(app.getHttpServer() as string)
+        .get('/stock')
+        .expect(200)
+        .expect((res) => {
+          expect(res.body).toEqual({ symbols: [] });
+        });
+    });
+  });
+
   describe('GET /stock/:symbol', () => {
     it('should return stock data', () => {
       return request(app.getHttpServer() as string)
