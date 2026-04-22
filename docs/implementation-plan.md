@@ -246,3 +246,13 @@ PR 1 (DB environment setup — merged first)
 - Ensure type safety, linting compliance, and test passing.
 
 - Later consideration: use @nestjs/terminus for a more robust health check system.
+
+### Untrack symbol endpoint
+
+**Branch:** `12-feat/schedule-untrack`
+
+#### Tasks
+- Implement `DELETE /stock/:symbol` to remove the symbol from `trackedSymbols` and return `{ message: 'Tracking stopped for <SYMBOL>' }`.
+- Ensure idempotency: calling it multiple times for the same symbol should not cause errors.
+- Write unit tests for `StockService.untrackStock` covering: symbol removal, idempotency, and cron behavior.
+- Write unit tests for `StockController.untrackStock` covering: delegation to service and response handling.
