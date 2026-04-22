@@ -31,6 +31,13 @@ export class StockService {
     return { message: 'Tracking started for ' + symbol };
   }
 
+  untrackStock(symbol: string): { message: string } {
+    if (symbol) {
+      this.trackedSymbols.delete(symbol);
+    }
+    return { message: 'Tracking stopped for ' + symbol };
+  }
+
   @Cron(CronExpression.EVERY_MINUTE)
   async handleCron(): Promise<void> {
     this.logger.log('Executing cron job for tracked symbols...');

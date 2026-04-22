@@ -44,6 +44,42 @@ describe('StockService', () => {
     });
   });
 
+  describe('untrackStock', () => {
+    it('should unregister a symbol from tracking and return a success message', () => {
+      const symbol = 'AAPL';
+      service.trackStock(symbol);
+      const result = service.untrackStock(symbol);
+
+      expect(result).toEqual({ message: `Tracking stopped for ${symbol}` });
+    });
+
+    it('should remove the symbol from the tracking set', async () => {
+      const symbol = 'AAPL';
+      service.trackStock(symbol);
+
+      // Verify it is tracked initially
+      await service.handleCron();
+      expect(mockFinnhubService.getQuote).toHaveBeenCalledWith(symbol);
+
+      jest.clearAllMocks();
+
+      // Untrack and verify it's no longer tracked
+      service.untrackStock(symbol);
+      await service.handleCron();
+      expect(mockFinnhubService.getQuote).not.toHaveBeenCalledWith(symbol);
+    });
+
+    it('should be idempotent (calling it twice for the same symbol does not cause errors)', () => {
+      const symbol = 'AAPL';
+      service.trackStock(symbol);
+
+      service.untrackStock(symbol);
+      const result = service.untrackStock(symbol);
+
+      expect(result).toEqual({ message: `Tracking stopped for ${symbol}` });
+    });
+  });
+
   describe('handleCron', () => {
     it('should fetch quotes and save prices for all tracked symbols', async () => {
       const symbols = ['AAPL', 'MSFT'];
