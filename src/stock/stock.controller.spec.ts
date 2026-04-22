@@ -9,6 +9,7 @@ describe('StockController', () => {
     getStock: jest.fn(),
     trackStock: jest.fn(),
     untrackStock: jest.fn(),
+    getTrackedSymbols: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -19,6 +20,26 @@ describe('StockController', () => {
 
     controller = module.get<StockController>(StockController);
     jest.clearAllMocks();
+  });
+
+  describe('getTrackedSymbols', () => {
+    it('should delegate to StockService.getTrackedSymbols', () => {
+      const symbols = ['AAPL', 'MSFT'];
+      mockStockService.getTrackedSymbols.mockReturnValue(symbols);
+
+      const result = controller.getTrackedSymbols();
+
+      expect(mockStockService.getTrackedSymbols).toHaveBeenCalled();
+      expect(result).toEqual({ symbols });
+    });
+
+    it('should return an empty list if no symbols are tracked', () => {
+      mockStockService.getTrackedSymbols.mockReturnValue([]);
+
+      const result = controller.getTrackedSymbols();
+
+      expect(result).toEqual({ symbols: [] });
+    });
   });
 
   describe('getStock', () => {

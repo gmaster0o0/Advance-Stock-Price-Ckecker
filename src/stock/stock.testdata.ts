@@ -9,6 +9,11 @@ export const validFinnhubQuote: FinnhubQuote = {
   t: 1700000000,
 };
 
+export const emptyStockPriceResponse = {
+  currentPrice: 0,
+  movingAverage: 0,
+};
+
 export const emptyFinnhubQuote: FinnhubQuote = {
   c: 0,
   h: 0,

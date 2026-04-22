@@ -38,8 +38,17 @@ export class StockService {
     return { message: 'Tracking stopped for ' + symbol };
   }
 
+  getTrackedSymbols(): string[] {
+    return Array.from(this.trackedSymbols);
+  }
+
   @Cron(CronExpression.EVERY_MINUTE)
   async handleCron(): Promise<void> {
+    if (this.trackedSymbols.size === 0) {
+      this.logger.log('No symbols tracked. Skipping cron execution.');
+      return;
+    }
+
     this.logger.log('Executing cron job for tracked symbols...');
 
     for (const symbol of this.trackedSymbols) {

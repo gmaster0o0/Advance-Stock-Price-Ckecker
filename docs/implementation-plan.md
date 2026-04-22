@@ -256,3 +256,13 @@ PR 1 (DB environment setup — merged first)
 - Ensure idempotency: calling it multiple times for the same symbol should not cause errors.
 - Write unit tests for `StockService.untrackStock` covering: symbol removal, idempotency, and cron behavior.
 - Write unit tests for `StockController.untrackStock` covering: delegation to service and response handling.
+
+### List tracked symbols endpoint
+
+**Branch:** `13-feat/list-tracked-symbols`
+
+#### Tasks
+- Implement `GET /stock` to return a list of currently tracked symbols.
+- Ensure idempotency: calling it multiple times for the same symbol should not cause errors.
+- Write unit tests for `StockService.getTrackedSymbols` covering: symbol retrieval, idempotency, and cron behavior.
+- Write unit tests for `StockController.getTrackedSymbolsgit` covering: delegation to service and response handling.

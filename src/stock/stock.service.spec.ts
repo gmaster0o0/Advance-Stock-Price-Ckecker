@@ -1,8 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { Logger } from '@nestjs/common';
 import { StockService } from './stock.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { FinnhubService } from './finnhub.service';
-import { FinnhubQuote } from './interfaces/finnhub-quote.interface';
+import { validFinnhubQuote } from './stock.testdata';
 
 describe('StockService', () => {
   let service: StockService;
@@ -20,6 +21,12 @@ describe('StockService', () => {
   };
 
   beforeEach(async () => {
+    jest.spyOn(Logger.prototype, 'log').mockImplementation(() => undefined);
+    jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+    jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+    jest.spyOn(Logger.prototype, 'debug').mockImplementation(() => undefined);
+    jest.spyOn(Logger.prototype, 'verbose').mockImplementation(() => undefined);
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         StockService,
@@ -80,17 +87,40 @@ describe('StockService', () => {
     });
   });
 
+  describe('getTrackedSymbols', () => {
+    it('should return an empty array when no symbols are tracked', () => {
+      expect(service.getTrackedSymbols()).toEqual([]);
+    });
+
+    it('should return a list of all currently tracked symbols', () => {
+      const symbols = ['AAPL', 'MSFT', 'GOOGL'];
+      symbols.forEach((s) => service.trackStock(s));
+
+      const tracked = service.getTrackedSymbols();
+      expect(tracked).toHaveLength(symbols.length);
+      expect(tracked).toEqual(expect.arrayContaining(symbols));
+    });
+
+    it('should not contain duplicate symbols', () => {
+      service.trackStock('AAPL');
+      service.trackStock('AAPL');
+
+      expect(service.getTrackedSymbols()).toEqual(['AAPL']);
+    });
+
+    it('should reflect symbols removed via untrackStock', () => {
+      service.trackStock('AAPL');
+      service.trackStock('MSFT');
+      service.untrackStock('AAPL');
+
+      expect(service.getTrackedSymbols()).toEqual(['MSFT']);
+    });
+  });
+
   describe('handleCron', () => {
     it('should fetch quotes and save prices for all tracked symbols', async () => {
       const symbols = ['AAPL', 'MSFT'];
-      const mockQuote: FinnhubQuote = {
-        c: 150,
-        h: 155,
-        l: 145,
-        o: 148,
-        pc: 147,
-        t: 1618920000,
-      };
+      const mockQuote = validFinnhubQuote;
 
       symbols.forEach((symbol) => service.trackStock(symbol));
 
@@ -117,14 +147,7 @@ describe('StockService', () => {
       service.trackStock(symbols[1]);
       service.trackStock(symbols[2]);
 
-      const mockQuote: FinnhubQuote = {
-        c: 150,
-        h: 155,
-        l: 145,
-        o: 148,
-        pc: 147,
-        t: 1618920000,
-      };
+      const mockQuote = validFinnhubQuote;
 
       jest
         .spyOn(finnhubService, 'getQuote')
@@ -150,6 +173,18 @@ describe('StockService', () => {
       expect(createSpy).toHaveBeenCalledWith({
         data: { symbol: 'MSFT', price: mockQuote.c },
       });
+    });
+
+    it('should NOT call getQuote or prisma.create when no symbols are tracked', async () => {
+      // Ensure no symbols are tracked (starting from a clean state)
+      expect(service.getTrackedSymbols()).toHaveLength(0);
+
+      const createSpy = jest.spyOn(prismaService.stockPrice, 'create');
+
+      await service.handleCron();
+
+      expect(mockFinnhubService.getQuote).not.toHaveBeenCalled();
+      expect(createSpy).not.toHaveBeenCalled();
     });
   });
 });
