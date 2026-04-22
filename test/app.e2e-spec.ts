@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
+import { setupSwagger } from './../src/swagger/swagger.helper';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;
@@ -15,14 +15,7 @@ describe('AppController (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
 
-    const config = new DocumentBuilder()
-      .setTitle('Stock Price Checker')
-      .setDescription('API for tracking and analyzing stock prices')
-      .setVersion('1.0')
-      .addTag('stock')
-      .build();
-    const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api', app, document);
+    setupSwagger(app);
 
     await app.init();
   });
