@@ -23,6 +23,7 @@
     "db:dev:up": "docker compose up -d postgres-dev",
     "db:test:up": "docker compose --profile test up -d postgres-test",
     "db:test:down": "docker compose --profile test down",
+    "db:test:migrate": "dotenv -e .env -- prisma db push",
     "prepare": "husky"
   },
   "dependencies": {

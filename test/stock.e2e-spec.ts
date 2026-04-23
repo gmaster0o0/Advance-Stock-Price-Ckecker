@@ -1,4 +1,4 @@
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request, { Response } from 'supertest';
 import { AppModule } from './../src/app.module';
@@ -25,6 +25,13 @@ describe('Stock (e2e)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
     prisma = app.get<PrismaService>(PrismaService);
     await app.init();
   });
@@ -79,22 +86,65 @@ describe('Stock (e2e)', () => {
   });
 
   describe('GET /stock/:symbol', () => {
-    it('should return stock data with moving average', async () => {
+    it('should return 404 before any price is stored', () => {
+      return request(app.getHttpServer() as string)
+        .get('/stock/AAPL')
+        .expect(404);
+    });
+
+    it('should return 200 with stock data after seeding a price row', async () => {
+      const symbol = 'AAPL';
+      const price = 150.25;
+      const timestamp = new Date('2026-04-21T10:00:00.000Z');
+
+      await prisma.stockPrice.create({
+        data: {
+          symbol,
+          price,
+          timestamp,
+        },
+      });
+
+      return request(app.getHttpServer() as string)
+        .get(`/stock/${symbol}`)
+        .expect(200)
+        .expect((res: Response) => {
+          expect(res.body).toEqual({
+            symbol,
+            currentPrice: price,
+            movingAverage: price,
+            lastUpdated: timestamp.toISOString(),
+          });
+        });
+    });
+
+    it('should return 400 for invalid symbol format', () => {
+      return request(app.getHttpServer() as string)
+        .get('/stock/INVALID')
+        .expect(400);
+    });
+
+    it('should return 404 for valid-looking but unknown symbol', () => {
+      return request(app.getHttpServer() as string)
+        .get('/stock/ZZZZ')
+        .expect(404);
+    });
+
+    it('should return stock data with moving average from seed data', async () => {
       const symbol = movingAverageTestSymbol;
       const prices = movingAverageSeedPrices;
       const latestTenPrices = prices.slice(-10);
       const expectedMA =
-        latestTenPrices.reduce((sum, price) => sum + price, 0) /
+        latestTenPrices.reduce((sum, seedPrice) => sum + seedPrice, 0) /
         latestTenPrices.length;
       const expectedCurrentPrice = prices[prices.length - 1];
       const baseTimestamp = new Date('2026-04-21T10:00:00.000Z');
 
-      // Seed database
-      for (const [index, price] of prices.entries()) {
+      for (const [index, seedPrice] of prices.entries()) {
         await prisma.stockPrice.create({
           data: {
             symbol,
-            price,
+            price: seedPrice,
             timestamp: new Date(baseTimestamp.getTime() + index * 60_000),
           },
         });
@@ -112,12 +162,6 @@ describe('Stock (e2e)', () => {
           });
         });
     });
-
-    it('should return 404 for unknown symbol', () => {
-      return request(app.getHttpServer() as string)
-        .get('/stock/UNKNOWN')
-        .expect(404);
-    });
   });
 
   describe('PUT /stock/:symbol', () => {
@@ -129,6 +173,22 @@ describe('Stock (e2e)', () => {
           expect(res.body).toEqual({
             message: 'Tracking started for AAPL',
           });
+        });
+    });
+
+    it('should be idempotent when called multiple times for the same symbol', () => {
+      return request(app.getHttpServer() as string)
+        .put('/stock/AAPL')
+        .expect(200)
+        .then(() => {
+          return request(app.getHttpServer() as string)
+            .put('/stock/AAPL')
+            .expect(200)
+            .expect((res) => {
+              expect(res.body).toEqual({
+                message: 'Tracking started for AAPL',
+              });
+            });
         });
     });
   });
