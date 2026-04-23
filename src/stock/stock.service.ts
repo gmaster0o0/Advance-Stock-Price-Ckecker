@@ -9,19 +9,22 @@ import { StockPriceResponse } from './dto/stock-price-response.dto';
 export class StockService {
   private readonly logger = new Logger(StockService.name);
   private readonly trackedSymbols: Set<string> = new Set();
+  private movingAverageSampleSize = 10;
 
   constructor(
     private readonly prismaService: PrismaService,
     private readonly finnhubService: FinnhubService,
     private readonly configService: ConfigService,
-  ) {}
+  ) {
+    this.movingAverageSampleSize = Number(
+      this.configService.get<number>('MOVING_AVERAGE_SAMPLE_SIZE', 10),
+    );
+  }
 
   async getMovingAverage(symbol: string): Promise<StockPriceResponse | null> {
-    const interval = this.configService.get<number>(
-      'STOCK_FETCH_INTERVAL_MINUTES',
-      1,
+    const startTime = new Date(
+      Date.now() - this.movingAverageSampleSize * 1 * 60 * 1000,
     );
-    const startTime = new Date(Date.now() - 10 * interval * 60 * 1000);
 
     const prices = await this.prismaService.stockPrice.findMany({
       where: {
@@ -31,7 +34,7 @@ export class StockService {
         },
       },
       orderBy: { timestamp: 'desc' },
-      take: 10,
+      take: this.movingAverageSampleSize,
     });
 
     if (prices.length === 0) {
@@ -42,7 +45,7 @@ export class StockService {
     const sum = prices.reduce((acc, curr) => acc + curr.price, 0);
     const movingAverage = sum / prices.length;
     const samples = prices.length;
-    const isReliable = samples === 10;
+    const isReliable = samples === this.movingAverageSampleSize;
 
     return {
       symbol,

@@ -4,6 +4,8 @@ import { ConfigService } from '@nestjs/config';
 import { StockService } from './stock.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { FinnhubService } from './finnhub.service';
+
+type TestConfigService = ConfigService<Record<string, unknown>, false>;
 import {
   validFinnhubQuote,
   stockPriceTimestamp,
@@ -27,7 +29,7 @@ describe('StockService', () => {
     getQuote: jest.fn(),
   };
 
-  const mockConfigService = {
+  const mockConfigService: Partial<TestConfigService> & { get: jest.Mock } = {
     get: jest.fn(),
   };
 
@@ -132,7 +134,45 @@ describe('StockService', () => {
     });
   });
 
+  describe('Validation and Config', () => {
+    it('should initialize movingAverageSampleSize from config', () => {
+      mockConfigService.get.mockImplementation(
+        (key: string, defaultValue?: number) => {
+          if (key === 'MOVING_AVERAGE_SAMPLE_SIZE') return 5;
+          return defaultValue;
+        },
+      );
+
+      // Re-instantiate service to pick up new config
+      const newService = new StockService(
+        prismaService,
+        finnhubService,
+        mockConfigService as unknown as TestConfigService,
+      );
+
+      expect(
+        (newService as unknown as { movingAverageSampleSize: number })
+          .movingAverageSampleSize,
+      ).toBe(5);
+    });
+  });
+
   describe('getMovingAverage', () => {
+    beforeEach(() => {
+      // Ensure service stays at sample size 10 for these tests
+      mockConfigService.get.mockImplementation(
+        (key: string, defaultValue?: number) => {
+          if (key === 'MOVING_AVERAGE_SAMPLE_SIZE') return 10;
+          return defaultValue;
+        },
+      );
+      service = new StockService(
+        prismaService,
+        finnhubService,
+        mockConfigService as unknown as TestConfigService,
+      );
+    });
+
     it('should return the moving average and latest price when data exists', async () => {
       const symbol = 'AAPL';
       const mockPrices = aaplPriceHistory;

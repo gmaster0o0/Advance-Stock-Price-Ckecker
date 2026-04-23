@@ -7,6 +7,8 @@ import { PrismaService } from './../src/prisma/prisma.service';
 import {
   movingAverageSeedPrices,
   movingAverageTestSymbol,
+  recentMovingAveragePrices,
+  oldMovingAveragePrices,
 } from './stock.e2e-testdata';
 import { seedRecentAndOldPrices } from './stock.e2e-helpers';
 
@@ -96,7 +98,7 @@ describe('Stock (e2e)', () => {
     it('should return 200 with stock data after seeding a price row', async () => {
       const symbol = 'AAPL';
       const price = 150.25;
-      const timestamp = new Date('2026-04-21T10:00:00.000Z');
+      const timestamp = new Date(); // Use current date for test to pass dynamic filtering
 
       await prisma.stockPrice.create({
         data: {
@@ -170,10 +172,13 @@ describe('Stock (e2e)', () => {
 
     it('should only include prices within the 10-minute time window and correctly report reliability', async () => {
       const symbol = 'MSFT';
-      const recentPrices = [100, 101, 102, 103, 104];
-      const oldPrices = [200, 201, 202, 203, 204];
 
-      await seedRecentAndOldPrices(prisma, symbol, recentPrices, oldPrices);
+      await seedRecentAndOldPrices(
+        prisma,
+        symbol,
+        recentMovingAveragePrices,
+        oldMovingAveragePrices,
+      );
 
       return request(app.getHttpServer() as string)
         .get(`/stock/${symbol}`)
