@@ -269,4 +269,4 @@ Target branch: `7-feat/scheduled-price-fetch` (since it depends on the tracking 
 - Implement `GET /stock` to return a list of currently tracked symbols.
 - Ensure idempotency: calling it multiple times for the same symbol should not cause errors.
 - Write unit tests for `StockService.getTrackedSymbols` covering: symbol retrieval, idempotency, and cron behavior.
-- Write unit tests for `StockController.getTrackedSymbolsgit` covering: delegation to service and response handling.
+- Write unit tests for `StockController.getTrackedSymbols` covering: delegation to service and response handling.

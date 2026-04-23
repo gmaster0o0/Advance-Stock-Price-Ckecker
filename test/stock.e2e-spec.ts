@@ -8,6 +8,7 @@ import {
   movingAverageSeedPrices,
   movingAverageTestSymbol,
 } from './stock.e2e-testdata';
+import { seedRecentAndOldPrices } from './stock.e2e-helpers';
 
 describe('Stock (e2e)', () => {
   let app: INestApplication;
@@ -111,9 +112,11 @@ describe('Stock (e2e)', () => {
         .expect((res: Response) => {
           expect(res.body).toEqual({
             symbol,
-            currentPrice: price,
+            lastPrice: price,
             movingAverage: price,
-            lastUpdated: timestamp.toISOString(),
+            lastUpdated: expect.any(String) as string,
+            samples: 1,
+            isReliable: false,
           });
         });
     });
@@ -138,14 +141,14 @@ describe('Stock (e2e)', () => {
         latestTenPrices.reduce((sum, seedPrice) => sum + seedPrice, 0) /
         latestTenPrices.length;
       const expectedCurrentPrice = prices[prices.length - 1];
-      const baseTimestamp = new Date('2026-04-21T10:00:00.000Z');
+      const now = Date.now();
 
       for (const [index, seedPrice] of prices.entries()) {
         await prisma.stockPrice.create({
           data: {
             symbol,
             price: seedPrice,
-            timestamp: new Date(baseTimestamp.getTime() + index * 60_000),
+            timestamp: new Date(now - (prices.length - 1 - index) * 30_000),
           },
         });
       }
@@ -156,10 +159,40 @@ describe('Stock (e2e)', () => {
         .expect((res: Response) => {
           expect(res.body).toEqual({
             symbol,
-            currentPrice: expectedCurrentPrice,
+            lastPrice: expectedCurrentPrice,
             movingAverage: expectedMA,
             lastUpdated: expect.any(String) as string,
+            samples: 10,
+            isReliable: true,
           });
+        });
+    });
+
+    it('should only include prices within the 10-minute time window and correctly report reliability', async () => {
+      const symbol = 'MSFT';
+      const recentPrices = [100, 101, 102, 103, 104];
+      const oldPrices = [200, 201, 202, 203, 204];
+
+      await seedRecentAndOldPrices(prisma, symbol, recentPrices, oldPrices);
+
+      return request(app.getHttpServer() as string)
+        .get(`/stock/${symbol}`)
+        .expect(200)
+        .expect((res: Response) => {
+          const body = res.body as {
+            symbol: string;
+            samples: number;
+            isReliable: boolean;
+            movingAverage: number;
+            lastPrice: number;
+          };
+
+          expect(body.symbol).toBe(symbol);
+          expect(body.samples).toBe(5);
+          expect(body.isReliable).toBe(false);
+          // Moving average of 100, 101, 102, 103, 104 is (100+104)/2 = 102
+          expect(body.movingAverage).toBe(102);
+          expect(body.lastPrice).toBe(100); // 0s ago was the last one created
         });
     });
   });

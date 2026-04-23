@@ -77,3 +77,10 @@ npm test
 # run e2e tests
 npm run test:e2e
 ```
+
+## Limitations & Future Improvements
+
+Current e2e tests are using mocked HTTP responses for the Finnhub API to avoid hitting the real API during tests. This allows us to test our application's logic without relying on external services, but it does not fully simulate real-world API interactions.
+
+**Future improvements could include:** 
+- mocked API servers to simulate more realistic API interactions

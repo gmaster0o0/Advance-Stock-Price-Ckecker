@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { StockService } from './stock.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { FinnhubService } from './finnhub.service';
@@ -26,6 +27,10 @@ describe('StockService', () => {
     getQuote: jest.fn(),
   };
 
+  const mockConfigService = {
+    get: jest.fn(),
+  };
+
   beforeEach(async () => {
     jest.spyOn(Logger.prototype, 'log').mockImplementation(() => undefined);
     jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
@@ -38,6 +43,7 @@ describe('StockService', () => {
         StockService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: FinnhubService, useValue: mockFinnhubService },
+        { provide: ConfigService, useValue: mockConfigService },
       ],
     }).compile();
 
@@ -46,6 +52,9 @@ describe('StockService', () => {
     finnhubService = module.get<FinnhubService>(FinnhubService);
 
     jest.clearAllMocks();
+    mockConfigService.get.mockImplementation(
+      (key: string, defaultValue?: number) => defaultValue,
+    );
   });
 
   describe('trackStock', () => {
@@ -131,15 +140,23 @@ describe('StockService', () => {
       mockPrismaService.stockPrice.findMany.mockResolvedValue(mockPrices);
 
       const result = await service.getMovingAverage(symbol);
+      const startTime = expect.any(Date) as Date;
 
       expect(result).toEqual({
         symbol,
-        currentPrice: 150,
+        lastPrice: 150,
         movingAverage: 125,
         lastUpdated: stockPriceTimestamp,
+        samples: mockPrices.length,
+        isReliable: false,
       });
       expect(mockPrismaService.stockPrice.findMany).toHaveBeenCalledWith({
-        where: { symbol },
+        where: {
+          symbol,
+          timestamp: {
+            gte: startTime,
+          },
+        },
         orderBy: { timestamp: 'desc' },
         take: 10,
       });
