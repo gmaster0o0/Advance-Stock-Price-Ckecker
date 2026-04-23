@@ -5,10 +5,10 @@ export class StockPriceResponse {
   symbol!: string;
 
   @ApiProperty({
-    description: 'The current price of the stock',
+    description: 'The last price of the stock',
     example: 150.25,
   })
-  currentPrice!: number;
+  lastPrice!: number;
 
   @ApiProperty({
     description: 'The last updated timestamp',
@@ -16,6 +16,21 @@ export class StockPriceResponse {
   })
   lastUpdated!: Date;
 
-  @ApiProperty({ description: 'The 10-minute moving average', example: 149.5 })
+  @ApiProperty({
+    description: 'The 10-interval moving average',
+    example: 149.5,
+  })
   movingAverage!: number;
+
+  @ApiProperty({
+    description: 'The number of samples used for calculation',
+    example: 10,
+  })
+  samples!: number;
+
+  @ApiProperty({
+    description: 'Whether the calculation is reliable (has enough samples)',
+    example: true,
+  })
+  isReliable!: boolean;
 }

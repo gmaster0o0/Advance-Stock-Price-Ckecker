@@ -46,9 +46,11 @@ describe('StockController', () => {
     it('should delegate to StockService.getMovingAverage with the symbol', async () => {
       const mockResult = {
         symbol: 'AAPL',
-        currentPrice: 150,
+        lastPrice: 150,
         movingAverage: 140,
         lastUpdated: new Date(),
+        samples: 1,
+        isReliable: false,
       };
       mockStockService.getMovingAverage.mockResolvedValue(mockResult);
 
